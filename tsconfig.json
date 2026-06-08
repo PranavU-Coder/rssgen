@@ -14,10 +14,8 @@
     "jsx": "preserve",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
     "allowJs": true,
-    "types": [
-      "bun-types",
-      "node"
-    ]
+    "types": ["bun-types", "node"]
   }
 }
