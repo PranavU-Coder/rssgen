@@ -1,0 +1,32 @@
+{
+  "name": "rssgen",
+  "version": "0.1.0",
+  "description": "a super simple configurable whatsapp bot which acts as an rss feed generator tailored specifically for getting hackernews posts",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "baileys": "^7.0.0-rc.9",
+    "dotenv": "^16.4.5",
+    "jimp": "^1.6.1",
+    "link-preview-js": "^3.2.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^11.2.2",
+    "qrcode-terminal": "^0.12.0",
+    "sharp": "^0.34.5",
+    "wa-sticker-formatter": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/qrcode-terminal": "^0.12.2",
+    "bun-types": "latest",
+    "typescript": "^5.6.3"
+  }
+}
