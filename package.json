@@ -15,13 +15,11 @@
     "@hapi/boom": "^10.0.1",
     "baileys": "^7.0.0-rc.9",
     "dotenv": "^16.4.5",
-    "jimp": "^1.6.1",
     "link-preview-js": "^3.2.0",
     "pino": "^9.6.0",
     "pino-pretty": "^11.2.2",
     "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.34.5",
-    "wa-sticker-formatter": "^4.4.4"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

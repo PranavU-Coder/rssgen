@@ -9,12 +9,6 @@ const str = (key: string, fallback?: string): string => {
   return v;
 };
 
-const list = (key: string): string[] =>
-  (process.env[key] ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
 const bool = (key: string, fallback = false): boolean => {
   const v = process.env[key];
   if (v === undefined) return fallback;
@@ -23,12 +17,10 @@ const bool = (key: string, fallback = false): boolean => {
 
 export const env = {
   botName: str("BOT_NAME", "rssgen"),
-  prefix: str("PREFIX", "!"),
-  owners: list("OWNERS"),
   sessionDir: str("SESSION_DIR", ".session"),
   logLevel: str("LOG_LEVEL", "info"),
   usePairingCode: bool("USE_PAIRING_CODE"),
   pairingNumber: str("PAIRING_NUMBER", ""),
+  // optional here so listGroups.ts can run before a group is chosen; validated in groups.ts
+  digestGroup: str("DIGEST_GROUP", ""),
 } as const;
-
-export type Env = typeof env;

@@ -12,28 +12,31 @@ import { handleConnection } from "../events/connection.ts";
 export class Bot {
   private sock!: WASocket;
   private reconnecting = false;
+  private open = false;
+  private openWaiters: (() => void)[] = [];
 
   async start(): Promise<void> {
-    await this.connect(async (sock) => {
-      sock.ev.on("messages.upsert", async (upsert) => {
-        if (upsert.type !== "notify") return;
-        for (const msg of upsert.messages) {
-          if (!msg.message || msg.key.fromMe) continue;
-
-          const jid = msg.key.remoteJid;
-          const text =
-            msg.message.conversation || msg.message.extendedTextMessage?.text;
-          if (jid?.endsWith("@g.us")) {
-            logger.info(`[FOUND GROUP JID] Group: ${jid} | Said: "${text}"`);
-          }
-        }
-      });
-    });
+    await this.connect();
   }
 
-  private async connect(
-    register: (sock: WASocket) => Promise<void>,
-  ): Promise<void> {
+  // resolves with the live socket once the connection is open (immediately if it already is)
+  async ready(timeoutMs: number): Promise<WASocket> {
+    if (!this.open) {
+      let timer: Timer | undefined;
+      await Promise.race([
+        new Promise<void>((resolve) => this.openWaiters.push(resolve)),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error(`not connected after ${timeoutMs}ms`)),
+            timeoutMs,
+          );
+        }),
+      ]).finally(() => clearTimeout(timer));
+    }
+    return this.sock;
+  }
+
+  private async connect(): Promise<void> {
     const { state, saveCreds } = await loadAuthState();
     const { version, isLatest } = await fetchLatestBaileysVersion();
     logger.info({ version, isLatest }, "using baileys version");
@@ -43,7 +46,7 @@ export class Bot {
       auth: state,
       logger: logger.child({ module: "baileys" }) as any, // a masterpiece in type annotation from Pranav Sir as always
       browser: Browsers.appropriate(env.botName),
-      generateHighQualityLinkPreview: true,
+      generateHighQualityLinkPreview: true, // article preview card on each post (needs link-preview-js + sharp)
       syncFullHistory: false,
       markOnlineOnConnect: false,
     });
@@ -56,9 +59,12 @@ export class Bot {
       handleConnection(sock, {
         onOpen: () => {
           this.reconnecting = false;
+          this.open = true;
+          this.openWaiters.splice(0).forEach((resolve) => resolve());
         },
         onClose: (shouldReconnect) => {
-          if (shouldReconnect) void this.reconnect(register);
+          this.open = false;
+          if (shouldReconnect) void this.reconnect();
           else
             logger.fatal(
               "logged out, please delete the session directory and restart",
@@ -75,20 +81,12 @@ export class Bot {
       const code = await sock.requestPairingCode(number);
       logger.info({ code }, "pairing code");
     }
-
-    await register(sock);
   }
 
-  private async reconnect(
-    register: (sock: WASocket) => Promise<void>,
-  ): Promise<void> {
+  private async reconnect(): Promise<void> {
     if (this.reconnecting) return;
     this.reconnecting = true;
     await Bun.sleep(2000);
-    await this.connect(register);
-  }
-
-  socket(): WASocket {
-    return this.sock;
+    await this.connect();
   }
 }
